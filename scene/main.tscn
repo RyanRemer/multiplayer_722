@@ -1,0 +1,51 @@
+[gd_scene load_steps=2 format=3 uid="uid://b2ru1tpqra4fc"]
+
+[ext_resource type="Script" path="res://script/multiplayer_gui.gd" id="1_lon8w"]
+
+[node name="Main" type="Node2D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="MultiplayerGUI" type="Panel" parent="CanvasLayer"]
+custom_minimum_size = Vector2(0, 80)
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("1_lon8w")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/MultiplayerGUI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MessageLabel" type="Label" parent="CanvasLayer/MultiplayerGUI/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MultiplayerGUI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="HostButton" type="Button" parent="CanvasLayer/MultiplayerGUI/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(128, 0)
+layout_mode = 2
+text = "HOST"
+
+[node name="ServerAddressEdit" type="LineEdit" parent="CanvasLayer/MultiplayerGUI/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Server IP"
+
+[node name="JoinContainer" type="Button" parent="CanvasLayer/MultiplayerGUI/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(128, 0)
+layout_mode = 2
+text = "JOIN"
+
+[connection signal="pressed" from="CanvasLayer/MultiplayerGUI/VBoxContainer/HBoxContainer/HostButton" to="CanvasLayer/MultiplayerGUI" method="_on_host_button_pressed"]
+[connection signal="text_changed" from="CanvasLayer/MultiplayerGUI/VBoxContainer/HBoxContainer/ServerAddressEdit" to="CanvasLayer/MultiplayerGUI" method="_on_server_address_edit_text_changed"]
+[connection signal="pressed" from="CanvasLayer/MultiplayerGUI/VBoxContainer/HBoxContainer/JoinContainer" to="CanvasLayer/MultiplayerGUI" method="_on_join_container_pressed"]
