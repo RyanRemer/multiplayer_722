@@ -2,9 +2,19 @@ extends Panel
 @onready var message_label = $VBoxContainer/MessageLabel
 
 var server_address = "localhost";
+var count = 0;
 
 func _ready():
 	multiplayer.server_disconnected.connect(_server_disconnected);
+	
+func _process(delta):
+	if Input.is_action_just_pressed("ui_accept"):
+		count += 1;
+		multiplayer.multiplayer_peer.put_var(count);
+		
+	if multiplayer.is_server() and multiplayer.multiplayer_peer.get_available_packet_count() > 0:
+		var count = multiplayer.multiplayer_peer.get_var();
+		print(str(multiplayer.get_unique_id()) +  ": Got count " + str(count));
 
 func _server_disconnected():
 	message_label.text = "Disconnected";
