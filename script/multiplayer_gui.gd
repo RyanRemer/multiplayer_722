@@ -1,26 +1,49 @@
 extends Panel
 @onready var message_label = $VBoxContainer/MessageLabel
 
+# Learnings
+# get_remote_sender_id does not return the same value per client
+# You cannot make multipla
+
 var server_address = "localhost";
-var packet = {
-	"count" : 0,
-}
+var packet = {};
+var thread: Thread = Thread.new();
+var mutex: Mutex = Mutex.new();
+
+var info = {
+		"count": 0,
+		"sender": randi()
+	};
 
 func _ready():
-	packet["sender"] = randi();
+	_set_data("info", info);
 	multiplayer.server_disconnected.connect(_server_disconnected);
+	thread.start(thread_loop);
+	
+func _exit_tree():
+	thread.free();
+	
+func _set_data(key, value):
+	mutex.lock();
+	packet[key] = value;
+	mutex.unlock();
 	
 func _process(delta):
 	if Input.is_action_just_pressed("ui_accept"):
-		packet["count"] += 1;
-		var serialize = var_to_str(packet);
-		_get_packet.rpc_id(1, serialize);
+		info["count"] += 1;
+		_set_data("info", info);
+		
+func thread_loop():
+	mutex.lock()
+	var serialized = var_to_str(packet);
+	mutex.unlock();
+	
+	_get_packet.rpc_id(1,serialized);
 
 @rpc("any_peer")
 func _get_packet(packet):
 	var data = str_to_var(packet);
 	print(str(multiplayer.get_unique_id()) + ": Recieved " + str(data) + " from " + str(multiplayer.get_remote_sender_id()))
-	print(multiplayer.get_peers())
 
 func _server_disconnected():
 	message_label.text = "Disconnected";
