@@ -9,6 +9,7 @@ var server_address = "localhost";
 var packet = {};
 var thread: Thread = Thread.new();
 var mutex: Mutex = Mutex.new();
+var run_thread = true;
 
 var info = {
 		"count": 0,
@@ -18,10 +19,10 @@ var info = {
 func _ready():
 	_set_data("info", info);
 	multiplayer.server_disconnected.connect(_server_disconnected);
-	thread.start(thread_loop);
 	
 func _exit_tree():
-	thread.free();
+	run_thread = false;
+	thread.wait_to_finish();
 	
 func _set_data(key, value):
 	mutex.lock();
@@ -32,15 +33,21 @@ func _process(delta):
 	if Input.is_action_just_pressed("ui_accept"):
 		info["count"] += 1;
 		_set_data("info", info);
+		thread.start(thread_loop);
 		
 func thread_loop():
-	mutex.lock()
-	var serialized = var_to_str(packet);
-	mutex.unlock();
+	while(run_thread):
+		mutex.lock()
+		var serialized = var_to_str(packet);
+		mutex.unlock();
+
+		_send_to_server.call_deferred(serialized);
+		await get_tree().create_timer(5.0).timeout;
 	
+func _send_to_server(serialized):
 	_get_packet.rpc_id(1,serialized);
 
-@rpc("any_peer")
+@rpc("any_peer", "call_local")
 func _get_packet(packet):
 	var data = str_to_var(packet);
 	print(str(multiplayer.get_unique_id()) + ": Recieved " + str(data) + " from " + str(multiplayer.get_remote_sender_id()))
@@ -54,7 +61,7 @@ func _on_host_button_pressed():
 	var peer = ENetMultiplayerPeer.new();
 	var error = peer.create_server(5656);
 	if error != OK:
-		message_label.text = "Error: " + str(error.message_text);
+		message_label.text = "Error: " + str(error);
 		return;
 	
 	multiplayer.multiplayer_peer = peer;
