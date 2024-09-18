@@ -31,9 +31,10 @@ func _set_data(key, value):
 	
 func _process(delta):
 	if Input.is_action_just_pressed("ui_accept"):
+		mutex.lock;
 		info["count"] += 1;
+		mutex.unlock();
 		_set_data("info", info);
-		thread.start(thread_loop);
 		
 func thread_loop():
 	while(run_thread):
@@ -42,7 +43,7 @@ func thread_loop():
 		mutex.unlock();
 
 		_send_to_server.call_deferred(serialized);
-		await get_tree().create_timer(5.0).timeout;
+		await get_tree().create_timer(2.0).timeout;
 	
 func _send_to_server(serialized):
 	_get_packet.rpc_id(1,serialized);
@@ -80,6 +81,8 @@ func _on_join_container_pressed():
 		
 	multiplayer.multiplayer_peer = peer;
 	message_label.text = "Connected to Server";
+	
+	thread.start(thread_loop);
 
 func _on_server_address_edit_text_changed(new_text):
 	server_address = new_text;
